@@ -436,7 +436,7 @@ proc guiSetFont*(font: Font) {.importc: "GuiSetFont", sideEffect.}
   ## Set gui custom font (global state)
 proc guiGetFont*(): Font {.importc: "GuiGetFont", sideEffect.}
   ## Get gui custom font (global state)
-proc guiSetStyleImpl(control: GuiControl, property: int32, value: int64) {.importc: "GuiSetStyle", sideEffect.}
+proc guiSetStyleImpl(control: GuiControl, property: int32, value: int32) {.importc: "GuiSetStyle", sideEffect.}
 proc guiGetStyleImpl(control: GuiControl, property: int32): int32 {.importc: "GuiGetStyle", sideEffect.}
 proc guiLoadStyleImpl(fileName: cstring) {.importc: "GuiLoadStyle", sideEffect.}
 proc guiLoadStyleDefault*() {.importc: "GuiLoadStyleDefault", sideEffect.}
@@ -690,7 +690,7 @@ type
                       ValueBoxProperty|ListViewProperty|ColorPickerProperty
 
   GuiStyleValue* = GuiState|GuiTextAlignment|GuiTextAlignmentVertical|
-                   GuiTextWrapMode|GuiControl|int64|int32|bool
+                   GuiTextWrapMode|GuiControl|int32|bool
 
 template validatePropertyControlMapping(control, property: untyped) =
   when property is ControlProperty:
@@ -723,7 +723,12 @@ template validatePropertyControlMapping(control, property: untyped) =
 proc guiSetStyle*[P: GuiStyleProperty, V: GuiStyleValue](control: GuiControl, property: P, value: V) =
   ## Set one style property
   validatePropertyControlMapping(control, P)
-  guiSetStyleImpl(control, property.int32, value)
+  guiSetStyleImpl(control, property.int32, value.int32)
+
+proc guiSetStyle*[P: GuiStyleProperty](control: GuiControl, property: P, value: uint32) =
+  ## Edgecase for uint32
+  validatePropertyControlMapping(control, P)
+  guiSetStyleImpl(control, property.int32, cast[int32](value))
 
 proc guiGetStyle*[P: GuiStyleProperty](control: GuiControl, property: P): int32 =
   ## Get one style property
